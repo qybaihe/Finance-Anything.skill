@@ -1,58 +1,95 @@
 # Finance Anything Decision Skill
 
-Finance Anything Decision Skill 是一个独立的 Agent Skill，用来把一句自然语言决策目标交给 Finance Anything，让系统内的多智能体团队协同分析，并生成最终决策报告。
+<p align="center">
+  <img src="assets/finance-anything-poster.png" alt="Finance Anything poster with flying birds" width="920" />
+</p>
 
-This repository contains a standalone Agent Skill for Finance Anything. It lets another agent, such as OpenCode or OpenCloud, send one natural-language decision goal to Finance Anything, start the specialist multi-agent workflow, and return the created decision workspace/report entry.
+<p align="center">
+  <a href="#zh"><kbd>中文</kbd></a>
+  &nbsp;|&nbsp;
+  <a href="#en"><kbd>English</kbd></a>
+</p>
 
-## 中文说明
+<p align="center">
+  Start one Finance Anything multi-agent decision workflow from any Agent runtime.
+</p>
+
+---
+
+<a id="zh"></a>
+
+<details open>
+<summary><strong>中文</strong> / Finance Anything 决策 Skill</summary>
 
 ### 这是什么
 
-Finance Anything 是基于 Paperclip 分支改造的万能决策助手。这个 Skill 是它的外部入口封装：当其它 Agent 需要判断“是否值得买、是否值得投、哪个方案更优、二手价值如何、风险在哪里”时，不需要自己重新分析一遍，只需要调用本 Skill，把目标提交给 Finance Anything。
+Finance Anything Decision Skill 是 Finance Anything 的外部 Agent 入口。其它 Agent 不需要自己临时分析“该不该买、该不该投、选哪个方案”，只要把用户的决策目标交给本 Skill，它会创建 Finance Anything 决策议题，并让系统内的专业 Agent 团队继续完成信息采集、方案比较、风险控制和最终报告。
 
-Finance Anything 后端会创建一个决策议题，并调度内部智能体协作，包括但不限于市场研究、价格对比、财务分析、风险控制、二手价值评估、用户约束分析和最终报告生成。
+适合处理：
 
-### 适用场景
+- 投资判断：股票、基金、ETF、债券或其它金融资产。
+- 消费决策：手机、电脑、汽车、家电、课程、软件订阅等。
+- 二手价值：保值率、折旧、真实成交价、转卖风险。
+- 多方案比较：预算、风险、收益、机会成本和长期价值。
+- 家庭预算、企业采购、学习投入等通用决策。
 
-- 股票、基金、ETF、债券或其它投资标的是否值得买入。
-- 手机、电脑、汽车、家电、课程、软件订阅等商品是否值得购买。
-- 二手商品的保值率、折旧、转卖风险和真实成交价值判断。
-- 多个方案之间的预算、风险、收益和长期价值比较。
-- 企业采购、个人消费、家庭预算、学习投入等通用决策。
+### 一键安装给 Agent
 
-### 环境配置
-
-调用方需要提供 Finance Anything 或 Paperclip API 身份：
+把 Skill 安装到本机 Codex 技能目录：
 
 ```bash
-export FINANCE_ANYTHING_API_URL="https://your-finance-anything-domain.example"
+bash -lc 'set -euo pipefail; dir="${CODEX_HOME:-$HOME/.codex}/skills/finance-anything-decision"; if [ -d "$dir/.git" ]; then git -C "$dir" pull --ff-only; else mkdir -p "$(dirname "$dir")"; git clone https://github.com/qybaihe/Finance-Anything.skill.git "$dir"; fi; node "$dir/scripts/start-decision.mjs" --help'
+```
+
+如果你的 Agent 使用其它技能目录，也可以直接克隆本仓库：
+
+```bash
+git clone https://github.com/qybaihe/Finance-Anything.skill.git
+cd Finance-Anything.skill
+npm run check
+```
+
+### 认证方式
+
+推荐使用 API Key，由运行平台或密钥管理系统注入：
+
+```bash
+export FINANCE_ANYTHING_API_URL="https://finance.oir.me"
 export FINANCE_ANYTHING_API_KEY="your_api_key"
 ```
 
-也兼容 Paperclip 风格的环境变量：
+也兼容 Paperclip 风格变量：
 
 ```bash
-export PAPERCLIP_API_URL="https://your-paperclip-or-finance-anything-domain.example"
+export PAPERCLIP_API_URL="https://finance.oir.me"
 export PAPERCLIP_API_KEY="your_api_key"
 ```
 
-可选审计字段：
+如果没有 API Key，可以让脚本进入交互式登录。它会询问 API URL、邮箱和密码，并只在本次请求中使用会话 Cookie，不会把密码写入仓库或配置文件：
 
 ```bash
-export PAPERCLIP_RUN_ID="external-agent-run-id"
+node scripts/start-decision.mjs --auth login --goal "我是否应该买这台二手 MacBook?"
 ```
 
-不要把 API Key 写进仓库。建议由运行平台、Agent runtime 或密钥管理系统注入。
+也支持通过环境变量提供登录信息，适合受信任的自动化环境：
+
+```bash
+export FINANCE_ANYTHING_API_URL="https://finance.oir.me"
+export FINANCE_ANYTHING_EMAIL="you@example.com"
+export FINANCE_ANYTHING_PASSWORD="your_password"
+```
+
+安全提醒：不要把 API Key、邮箱密码或用户隐私写入 README、issue 标题、上下文正文、日志或提交记录。交互式输入优先于命令行明文参数。
 
 ### 使用方式
 
-直接传入目标：
+直接提交一个目标：
 
 ```bash
 node scripts/start-decision.mjs --goal "我现在需要购买一台二手 MacBook，请帮我判断是否值得入手"
 ```
 
-附带预算、风险偏好和其它约束：
+附带预算、风险偏好、时间约束和链接：
 
 ```bash
 node scripts/start-decision.mjs \
@@ -60,7 +97,7 @@ node scripts/start-decision.mjs \
   --context "预算 5 万元，持有周期 6-12 个月，不能接受大幅回撤"
 ```
 
-从标准输入读取：
+从标准输入读取目标：
 
 ```bash
 echo "预算 6000 元，想买一台二手轻薄本，请帮我做决策" | node scripts/start-decision.mjs
@@ -70,6 +107,18 @@ echo "预算 6000 元，想买一台二手轻薄本，请帮我做决策" | node
 
 ```bash
 node scripts/start-decision.mjs --help
+```
+
+### 给调用 Agent 的提示词
+
+当 Agent 需要使用这个 Skill 时，可以按下面的策略行动：
+
+```text
+使用 Finance Anything Decision Skill 创建决策议题。
+如果环境里没有 FINANCE_ANYTHING_API_KEY 或 PAPERCLIP_API_KEY，先询问用户 Finance Anything API URL 和 API Key。
+如果用户没有 API Key，但有账号登录权限，则运行 --auth login，并在终端中询问邮箱和密码。
+不要自行生成最终购买或投资结论；最终结论由 Finance Anything 报告 Agent 输出。
+创建成功后，把 issuePath 返回给用户。
 ```
 
 ### API 行为
@@ -89,7 +138,7 @@ POST /api/finance/decisions
 }
 ```
 
-成功响应通常会包含：
+成功响应通常包含：
 
 - `issuePath`: 决策工作台或议题路径。
 - `issue.identifier`: 创建出的决策议题编号。
@@ -100,45 +149,96 @@ POST /api/finance/decisions
 
 调用方应把 `issuePath` 返回给用户，并说明 Finance Anything 已经开始多智能体决策流程。
 
-## English
+### 文件结构
+
+```text
+.
+├── SKILL.md
+├── README.md
+├── assets/
+│   └── finance-anything-poster.png
+├── examples/
+│   └── request.json
+└── scripts/
+    └── start-decision.mjs
+```
+
+### 本地校验
+
+```bash
+npm run check
+```
+
+Node.js 18 或更新版本即可运行；脚本不需要第三方 Node 依赖。
+
+</details>
+
+---
+
+<a id="en"></a>
+
+<details>
+<summary><strong>English</strong> / Finance Anything Decision Skill</summary>
 
 ### What This Is
 
-Finance Anything is a universal decision assistant built as a fork of Paperclip. This Skill is the external entry point for other agents. When another agent needs to decide whether to buy, invest, compare, or choose something, it should call this Skill instead of replacing the Finance Anything workflow with its own one-off analysis.
+Finance Anything Decision Skill is the external Agent entry point for Finance Anything. Other agents do not need to improvise a one-off answer for “should I buy, invest, compare, or choose this?” They can hand the user's decision goal to this Skill, which creates a Finance Anything decision issue and lets the specialist agent team continue with research, comparison, risk analysis, and the final report.
 
-The Finance Anything backend creates a decision issue and coordinates specialist agents for market research, price comparison, financial analysis, risk control, second-hand value assessment, user constraint analysis, and final report generation.
+Good fit for:
 
-### Use Cases
+- Investment decisions: stocks, funds, ETFs, bonds, and other assets.
+- Purchase decisions: phones, laptops, cars, appliances, courses, and subscriptions.
+- Second-hand value: depreciation, resale value, fair price, and transaction risk.
+- Option comparison: budget, risk, return, opportunity cost, and long-term value.
+- Family budgeting, business procurement, learning investment, and general choices.
 
-- Decide whether to buy a stock, fund, ETF, bond, or other investment asset.
-- Evaluate whether a phone, laptop, car, appliance, course, or software subscription is worth buying.
-- Analyze depreciation, resale value, transaction risk, and fair value for second-hand goods.
-- Compare multiple options across budget, risk, return, and long-term value.
-- Support general purchasing, family budget, learning investment, and business procurement decisions.
+### One-Command Agent Install
 
-### Configuration
-
-Provide a Finance Anything or Paperclip API identity:
+Install the Skill into a local Codex skills directory:
 
 ```bash
-export FINANCE_ANYTHING_API_URL="https://your-finance-anything-domain.example"
+bash -lc 'set -euo pipefail; dir="${CODEX_HOME:-$HOME/.codex}/skills/finance-anything-decision"; if [ -d "$dir/.git" ]; then git -C "$dir" pull --ff-only; else mkdir -p "$(dirname "$dir")"; git clone https://github.com/qybaihe/Finance-Anything.skill.git "$dir"; fi; node "$dir/scripts/start-decision.mjs" --help'
+```
+
+For other Agent runtimes, clone the repository directly:
+
+```bash
+git clone https://github.com/qybaihe/Finance-Anything.skill.git
+cd Finance-Anything.skill
+npm run check
+```
+
+### Authentication
+
+The recommended path is an API key injected by your runtime or secret manager:
+
+```bash
+export FINANCE_ANYTHING_API_URL="https://finance.oir.me"
 export FINANCE_ANYTHING_API_KEY="your_api_key"
 ```
 
-Paperclip-style variable names are also supported:
+Paperclip-style variables are also supported:
 
 ```bash
-export PAPERCLIP_API_URL="https://your-paperclip-or-finance-anything-domain.example"
+export PAPERCLIP_API_URL="https://finance.oir.me"
 export PAPERCLIP_API_KEY="your_api_key"
 ```
 
-Optional audit field:
+If the user does not have an API key, the script can use an interactive email/password login. It asks for the API URL, email, and password, uses the returned session cookie for this request, and does not persist the password:
 
 ```bash
-export PAPERCLIP_RUN_ID="external-agent-run-id"
+node scripts/start-decision.mjs --auth login --goal "Should I buy this second-hand MacBook?"
 ```
 
-Do not commit API keys. Inject them through your runtime, agent platform, or secret manager.
+Trusted automation can also provide login credentials through environment variables:
+
+```bash
+export FINANCE_ANYTHING_API_URL="https://finance.oir.me"
+export FINANCE_ANYTHING_EMAIL="you@example.com"
+export FINANCE_ANYTHING_PASSWORD="your_password"
+```
+
+Security note: do not put API keys, passwords, private user data, or raw credentials in README files, issue titles, context text, logs, or commits. Prefer interactive input over command-line plaintext.
 
 ### Usage
 
@@ -148,7 +248,7 @@ Start a decision with one goal:
 node scripts/start-decision.mjs --goal "Should I buy this second-hand MacBook?"
 ```
 
-Add constraints and context:
+Add budget, risk preference, timing, links, and known facts:
 
 ```bash
 node scripts/start-decision.mjs \
@@ -168,6 +268,18 @@ Show help:
 node scripts/start-decision.mjs --help
 ```
 
+### Prompt For Calling Agents
+
+Use this operating instruction when another Agent invokes the Skill:
+
+```text
+Use the Finance Anything Decision Skill to create a decision issue.
+If FINANCE_ANYTHING_API_KEY or PAPERCLIP_API_KEY is not available, ask the user for the Finance Anything API URL and API key.
+If the user has no API key but can sign in, run --auth login and ask for email/password in the terminal.
+Do not generate the final purchase or investment conclusion yourself; Finance Anything's report agent owns the final answer.
+After creation succeeds, return issuePath to the user.
+```
+
 ### API Behavior
 
 The script calls:
@@ -185,16 +297,41 @@ Payload:
 }
 ```
 
-The successful response usually includes `issuePath`, `issue.identifier`, `projectId`, `goalId`, `defaultAgentId`, and `agentCount`. Return the created `issuePath` to the user and explain that Finance Anything has started the multi-agent decision workflow.
+The successful response usually includes:
 
-## Repository Relationship
+- `issuePath`: Decision workspace or issue path.
+- `issue.identifier`: Created decision issue identifier.
+- `projectId`: Finance Anything project ID.
+- `goalId`: Goal ID.
+- `defaultAgentId`: Default decision coordinator.
+- `agentCount`: Number of agents available for the workflow.
 
-This standalone Skill is extracted from [qybaihe/Finance-Anything](https://github.com/qybaihe/Finance-Anything), a Finance Anything fork based on Paperclip. It is intentionally small so that external coding agents, internal automation systems, or agent platforms can install and call it without cloning the full application.
+Return `issuePath` to the user and explain that Finance Anything has started the multi-agent decision workflow.
 
-## Local Validation
+### Repository Layout
+
+```text
+.
+├── SKILL.md
+├── README.md
+├── assets/
+│   └── finance-anything-poster.png
+├── examples/
+│   └── request.json
+└── scripts/
+    └── start-decision.mjs
+```
+
+### Local Validation
 
 ```bash
 npm run check
 ```
 
-No third-party Node dependencies are required. Node.js 18 or newer is recommended because the script uses the built-in `fetch` API.
+Node.js 18 or newer is recommended. No third-party Node dependencies are required.
+
+</details>
+
+## Repository Relationship
+
+This standalone Skill is extracted from [qybaihe/Finance-Anything](https://github.com/qybaihe/Finance-Anything), a Finance Anything fork based on Paperclip. It stays intentionally small so external coding agents, internal automation systems, and Agent platforms can install and call it without cloning the full application.

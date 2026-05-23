@@ -23,13 +23,21 @@ description: >
 
 ### 调用要求
 
-调用方需要具备 Finance Anything 或 Paperclip API 身份：
+调用方需要具备 Finance Anything 或 Paperclip API 身份。优先使用 API Key：
 
 - `FINANCE_ANYTHING_API_URL` 或 `PAPERCLIP_API_URL`
 - `FINANCE_ANYTHING_API_KEY` 或 `PAPERCLIP_API_KEY`
 - 可选：`PAPERCLIP_RUN_ID`，用于审计和链路追踪
 
 在正常 Paperclip、OpenCode、OpenCloud 或其它 Agent runtime 中，这些值通常由运行环境自动注入。
+
+如果环境里没有 API Key，先询问用户：
+
+1. Finance Anything API URL，例如 `https://finance.oir.me`。
+2. API Key。如果用户没有 API Key，再询问是否使用账号登录。
+3. 如果用户选择账号登录，运行脚本时加 `--auth login`，由终端交互式询问邮箱和密码。
+
+不要在对话正文、issue 标题、日志或上下文里记录用户密码、API Key 或未脱敏隐私。账号密码只用于本次登录换取会话 Cookie，不应持久化。
 
 ### 启动决策
 
@@ -53,6 +61,12 @@ node scripts/start-decision.mjs \
 echo "请判断这辆二手车是否值得购买" | node scripts/start-decision.mjs
 ```
 
+如果需要账号密码登录：
+
+```bash
+node scripts/start-decision.mjs --auth login --goal "请判断这辆二手车是否值得购买"
+```
+
 脚本会调用：
 
 ```text
@@ -67,6 +81,7 @@ POST /api/finance/decisions
 - `context` 只放预算、时间、风险偏好、商品链接、候选方案、已知事实和用户限制。
 - 不要在本 Skill 内生成最终投资或购买结论；最终结论由 Finance Anything 的报告智能体综合生成。
 - 不要把 API Key、用户隐私或未脱敏凭证写入日志、README、issue 标题或上下文。
+- 如果凭证缺失，先询问用户；不要猜测、伪造或从无关文件里寻找密码。
 
 ## English
 
@@ -81,13 +96,21 @@ Common goals include:
 
 ### Requirements
 
-The calling agent needs a Finance Anything or Paperclip API identity:
+The calling agent needs a Finance Anything or Paperclip API identity. Prefer API key authentication:
 
 - `FINANCE_ANYTHING_API_URL` or `PAPERCLIP_API_URL`
 - `FINANCE_ANYTHING_API_KEY` or `PAPERCLIP_API_KEY`
 - Optional: `PAPERCLIP_RUN_ID` for audit trail
 
 In normal Paperclip, OpenCode, OpenCloud, or other agent-runtime runs, these values are usually injected by the runtime.
+
+If no API key is available, ask the user for:
+
+1. Finance Anything API URL, for example `https://finance.oir.me`.
+2. API key. If they do not have one, ask whether to use account login.
+3. If they choose account login, run the script with `--auth login` so the terminal can ask for email and password interactively.
+
+Do not write passwords, API keys, or unredacted private user data into conversation text, issue titles, logs, or context. Email/password login should only be used to obtain a session cookie for the current request.
 
 ### Start A Decision
 
@@ -111,6 +134,12 @@ Read the goal from stdin:
 echo "Please decide whether this used car is worth buying" | node scripts/start-decision.mjs
 ```
 
+Use interactive email/password login when needed:
+
+```bash
+node scripts/start-decision.mjs --auth login --goal "Please decide whether this used car is worth buying"
+```
+
 The script calls:
 
 ```text
@@ -125,3 +154,4 @@ The response includes fields such as `issuePath`, `issue.identifier`, `projectId
 - Put only constraints, budget, timing, risk preference, product links, candidate options, and known facts in `context`.
 - Do not generate the final purchase or investment conclusion inside this Skill. The final answer belongs to the Finance Anything report agent.
 - Do not write API keys, user-private data, or unredacted credentials into logs, README examples, issue titles, or context.
+- If credentials are missing, ask the user. Do not guess, invent, or search unrelated files for passwords.
