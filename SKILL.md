@@ -31,6 +31,8 @@ description: >
 
 在正常 Paperclip、OpenCode、OpenCloud 或其它 Agent runtime 中，这些值通常由运行环境自动注入。
 
+在 ArkClaw 中使用时，把本仓库作为标准 `SKILL.md` Skill 导入即可。运行环境需要 Node.js 18+、可访问 Finance Anything API，并通过 ArkClaw 的密钥或环境变量配置 `FINANCE_ANYTHING_API_URL` 与凭据。
+
 如果环境里没有 API Key，先询问用户：
 
 1. Finance Anything API URL，例如 `https://finance.oir.me`。
@@ -103,6 +105,8 @@ The calling agent needs a Finance Anything or Paperclip API identity. Prefer API
 - Optional: `PAPERCLIP_RUN_ID` for audit trail
 
 In normal Paperclip, OpenCode, OpenCloud, or other agent-runtime runs, these values are usually injected by the runtime.
+
+For ArkClaw, import this repository as a standard `SKILL.md` Skill. The runtime needs Node.js 18+, network access to the Finance Anything API, and credentials provided through ArkClaw secrets or environment variables.
 
 If no API key is available, ask the user for:
 

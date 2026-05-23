@@ -1,6 +1,6 @@
 {
   "name": "finance-anything-decision-skill",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Standalone Finance Anything decision workflow skill with API-key and interactive login support for Agent runtimes.",
   "type": "module",
   "bin": {

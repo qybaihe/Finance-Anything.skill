@@ -49,6 +49,17 @@ cd Finance-Anything.skill
 npm run check
 ```
 
+### ArkClaw 兼容
+
+ArkClaw 是云端 OpenClaw 形态，通常通过技能中心、Skill Hub 或 ClawHub 安装 Skill。这个仓库保持为标准 Agent Skill 目录结构：根目录有 `SKILL.md`，脚本放在 `scripts/`，无第三方 Node 依赖，适合被 ArkClaw 这类读取 `SKILL.md` 的 Agent 平台导入。
+
+在 ArkClaw 中使用时建议这样配置：
+
+- 从技能中心导入本 GitHub 仓库，或在 ArkClaw 终端把仓库克隆到实例的 skills 目录。
+- 确认运行环境有 Node.js 18 或更新版本，并允许访问 `https://finance.oir.me`。
+- 优先把 `FINANCE_ANYTHING_API_URL` 和 `FINANCE_ANYTHING_API_KEY` 放进 ArkClaw 的密钥/环境变量配置。
+- 如果没有 API Key，让 ArkClaw 触发 `--auth login`，由终端询问邮箱和密码；不要把密码写进任务正文。
+
 ### 认证方式
 
 推荐使用 API Key，由运行平台或密钥管理系统注入：
@@ -207,6 +218,17 @@ git clone https://github.com/qybaihe/Finance-Anything.skill.git
 cd Finance-Anything.skill
 npm run check
 ```
+
+### ArkClaw Compatibility
+
+ArkClaw is a cloud-hosted OpenClaw-style agent runtime that usually installs skills through its skill center, Skill Hub, or ClawHub. This repository stays in the standard Agent Skill shape: `SKILL.md` at the root, executable helpers in `scripts/`, and no third-party Node dependencies, so it is suitable for platforms that load local or imported `SKILL.md` directories.
+
+Recommended ArkClaw setup:
+
+- Import this GitHub repository from the skill center, or clone it into the ArkClaw instance's skills directory when terminal access is available.
+- Make sure the runtime has Node.js 18 or newer and network access to `https://finance.oir.me`.
+- Prefer configuring `FINANCE_ANYTHING_API_URL` and `FINANCE_ANYTHING_API_KEY` through ArkClaw secrets or environment variables.
+- If no API key is available, let ArkClaw run `--auth login` and ask for email/password in the terminal. Do not put passwords into task text.
 
 ### Authentication
 

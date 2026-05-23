@@ -59,6 +59,14 @@ function normalizeBaseUrl(value) {
   return value.replace(/\/+$/, "").replace(/\/api$/, "");
 }
 
+function originFromApiUrl(apiUrl) {
+  try {
+    return new URL(apiUrl).origin;
+  } catch {
+    return apiUrl;
+  }
+}
+
 function canPrompt() {
   return Boolean(process.stdin.isTTY && process.stdout.isTTY);
 }
@@ -126,6 +134,23 @@ async function readResponseBody(response) {
   }
 }
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithNetworkRetry(url, options, attempts = 3) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) await wait(700 * attempt);
+    }
+  }
+  throw lastError;
+}
+
 function getSetCookieValues(headers) {
   if (typeof headers.getSetCookie === "function") {
     return headers.getSetCookie();
@@ -135,9 +160,14 @@ function getSetCookieValues(headers) {
 }
 
 async function signInWithEmailPassword(apiUrl, email, password) {
-  const response = await fetch(`${apiUrl}/api/auth/sign-in/email`, {
+  const origin = originFromApiUrl(apiUrl);
+  const response = await fetchWithNetworkRetry(`${apiUrl}/api/auth/sign-in/email`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      origin,
+      referer: `${origin}/finance`,
+    },
     body: JSON.stringify({ email, password }),
   });
   const body = await readResponseBody(response);
@@ -243,6 +273,9 @@ if (!apiKey && !cookieHeader) {
 const headers = {
   "content-type": "application/json",
 };
+const requestOrigin = originFromApiUrl(apiUrl);
+headers.origin = requestOrigin;
+headers.referer = `${requestOrigin}/finance`;
 if (apiKey) {
   headers.authorization = apiKey.toLowerCase().startsWith("bearer ") ? apiKey : `Bearer ${apiKey}`;
 }
@@ -255,11 +288,18 @@ if (process.env.PAPERCLIP_RUN_ID) {
 
 // 中文：后端会创建决策议题，再由 Finance Anything 的专业 Agent 团队继续协同。
 // English: The backend creates a decision issue, then Finance Anything specialist agents continue the work.
-const response = await fetch(`${apiUrl}/api/finance/decisions`, {
-  method: "POST",
-  headers,
-  body: JSON.stringify({ goal, context }),
-});
+let response;
+try {
+  response = await fetch(`${apiUrl}/api/finance/decisions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ goal, context }),
+  });
+} catch (error) {
+  console.error("Finance Anything decision request failed.");
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
 
 const body = await readResponseBody(response);
 
