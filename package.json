@@ -1,0 +1,20 @@
+{
+  "name": "finance-anything-decision-skill",
+  "version": "0.1.0",
+  "description": "Standalone Finance Anything decision workflow skill for Paperclip/OpenCode/OpenCloud agents.",
+  "type": "module",
+  "bin": {
+    "finance-anything-decision": "scripts/start-decision.mjs"
+  },
+  "scripts": {
+    "check": "node --check scripts/start-decision.mjs"
+  },
+  "keywords": [
+    "finance-anything",
+    "paperclip",
+    "agent-skill",
+    "opencode",
+    "decision-assistant"
+  ],
+  "license": "MIT"
+}
