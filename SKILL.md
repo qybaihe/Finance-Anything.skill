@@ -37,7 +37,7 @@ description: >
 
 1. Finance Anything API URL，例如 `https://finance.oir.me`。
 2. API Key。如果用户没有 API Key，再询问是否使用账号登录。
-3. 如果用户选择账号登录，运行脚本时加 `--auth login`，由终端交互式询问邮箱和密码。
+3. 如果用户选择账号登录，运行脚本时加 `--auth login`，由终端交互式询问用户名或邮箱和密码。Finance Anything 浏览器登录页使用“用户名”，Skill 会自动转换为后端需要的内部邮箱格式。
 
 不要在对话正文、issue 标题、日志或上下文里记录用户密码、API Key 或未脱敏隐私。账号密码只用于本次登录换取会话 Cookie，不应持久化。
 
@@ -112,9 +112,9 @@ If no API key is available, ask the user for:
 
 1. Finance Anything API URL, for example `https://finance.oir.me`.
 2. API key. If they do not have one, ask whether to use account login.
-3. If they choose account login, run the script with `--auth login` so the terminal can ask for email and password interactively.
+3. If they choose account login, run the script with `--auth login` so the terminal can ask for username or email and password interactively. Finance Anything's browser sign-in accepts usernames; the Skill mirrors that conversion before calling the backend.
 
-Do not write passwords, API keys, or unredacted private user data into conversation text, issue titles, logs, or context. Email/password login should only be used to obtain a session cookie for the current request.
+Do not write passwords, API keys, or unredacted private user data into conversation text, issue titles, logs, or context. Username/password login should only be used to obtain a session cookie for the current request.
 
 ### Start A Decision
 
@@ -138,7 +138,7 @@ Read the goal from stdin:
 echo "Please decide whether this used car is worth buying" | node scripts/start-decision.mjs
 ```
 
-Use interactive email/password login when needed:
+Use interactive username/password login when needed:
 
 ```bash
 node scripts/start-decision.mjs --auth login --goal "Please decide whether this used car is worth buying"

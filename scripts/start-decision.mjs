@@ -33,19 +33,43 @@ Options:
   --context TEXT       Budget, constraints, links, risk preference, known facts
   --api-url URL        Finance Anything or Paperclip API base URL
   --api-key KEY        API key for non-interactive runs
-  --auth key|login     Use API key auth or email/password login prompt
+  --username TEXT      Finance Anything username or email for login auth
+  --email TEXT         Alias of --username, kept for compatibility
+  --auth key|login     Use API key auth or username/password login prompt
 
 Environment:
   FINANCE_ANYTHING_API_URL   Finance Anything API base URL
   FINANCE_ANYTHING_API_KEY   Finance Anything API key
-  FINANCE_ANYTHING_EMAIL     Optional sign-in email when no API key is available
+  FINANCE_ANYTHING_USERNAME  Optional sign-in username or email when no API key is available
+  FINANCE_ANYTHING_EMAIL     Alias of FINANCE_ANYTHING_USERNAME
   FINANCE_ANYTHING_PASSWORD  Optional sign-in password when no API key is available
   PAPERCLIP_API_URL          Compatible Paperclip API base URL
   PAPERCLIP_API_KEY          Compatible Paperclip API key
-  PAPERCLIP_EMAIL            Compatible sign-in email
+  PAPERCLIP_USERNAME         Compatible sign-in username or email
+  PAPERCLIP_EMAIL            Alias of PAPERCLIP_USERNAME
   PAPERCLIP_PASSWORD         Compatible sign-in password
   PAPERCLIP_RUN_ID           Optional audit/run identifier
 `);
+}
+
+const USERNAME_EMAIL_DOMAIN = "finance-anything.local";
+
+function normalizeUsername(value) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function usernameToEmail(value) {
+  const username = normalizeUsername(value);
+  if (username.includes("@")) return username.toLowerCase();
+  const encoded = Array.from(username)
+    .map((char) => {
+      if (/^[a-z0-9_-]$/i.test(char)) return char.toLowerCase();
+      return `u${char.codePointAt(0)?.toString(16) ?? "0"}`;
+    })
+    .join("-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "") || "user";
+  return `${encoded}@${USERNAME_EMAIL_DOMAIN}`;
 }
 
 async function readStdinIfAvailable() {
@@ -159,8 +183,9 @@ function getSetCookieValues(headers) {
   return single ? [single] : [];
 }
 
-async function signInWithEmailPassword(apiUrl, email, password) {
+async function signInWithUsernamePassword(apiUrl, username, password) {
   const origin = originFromApiUrl(apiUrl);
+  const email = usernameToEmail(username);
   const response = await fetchWithNetworkRetry(`${apiUrl}/api/auth/sign-in/email`, {
     method: "POST",
     headers: {
@@ -196,6 +221,7 @@ const goalFlag = readFlag(args, "--goal");
 const context = readFlag(args, "--context") ?? "";
 const apiUrlFlag = readFlag(args, "--api-url");
 const apiKeyFlag = readFlag(args, "--api-key");
+const usernameFlag = readFlag(args, "--username") ?? readFlag(args, "--email");
 const authModeFlag = readFlag(args, "--auth");
 const positional = args.filter((arg, index) => {
   const previous = args[index - 1];
@@ -204,6 +230,8 @@ const positional = args.filter((arg, index) => {
     && previous !== "--context"
     && previous !== "--api-url"
     && previous !== "--api-key"
+    && previous !== "--username"
+    && previous !== "--email"
     && previous !== "--auth";
 });
 
@@ -228,7 +256,12 @@ let rawApiUrl = apiUrlFlag
   || "http://127.0.0.1:3300";
 
 let apiKey = apiKeyFlag || process.env.FINANCE_ANYTHING_API_KEY || process.env.PAPERCLIP_API_KEY || "";
-let email = process.env.FINANCE_ANYTHING_EMAIL || process.env.PAPERCLIP_EMAIL || "";
+let username = usernameFlag
+  || process.env.FINANCE_ANYTHING_USERNAME
+  || process.env.FINANCE_ANYTHING_EMAIL
+  || process.env.PAPERCLIP_USERNAME
+  || process.env.PAPERCLIP_EMAIL
+  || "";
 let password = process.env.FINANCE_ANYTHING_PASSWORD || process.env.PAPERCLIP_PASSWORD || "";
 let cookieHeader = "";
 
@@ -240,20 +273,20 @@ if (!apiKey && canPrompt() && !apiUrlFlag && !process.env.FINANCE_ANYTHING_API_U
 const apiUrl = normalizeBaseUrl(rawApiUrl);
 let authMode = (authModeFlag || "").trim().toLowerCase();
 
-if (!apiKey && !email && !password && canPrompt()) {
-  const answer = await promptLine("Authentication method: API key or email/password login? [key/login] (key): ");
+if (!apiKey && !username && !password && canPrompt()) {
+  const answer = await promptLine("Authentication method: API key or username/password login? [key/login] (key): ");
   authMode = answer.trim().toLowerCase() || "key";
 }
 
-if (!apiKey && (authMode === "login" || email || password)) {
-  if (!email && canPrompt()) email = (await promptLine("Finance Anything email: ")).trim();
+if (!apiKey && (authMode === "login" || username || password)) {
+  if (!username && canPrompt()) username = (await promptLine("Finance Anything username or email: ")).trim();
   if (!password && canPrompt()) password = await promptSecret("Finance Anything password: ");
-  if (!email || !password) {
-    console.error("Missing Finance Anything email/password for login auth.");
+  if (!username || !password) {
+    console.error("Missing Finance Anything username/password for login auth.");
     process.exit(2);
   }
   try {
-    cookieHeader = await signInWithEmailPassword(apiUrl, email, password);
+    cookieHeader = await signInWithUsernamePassword(apiUrl, username, password);
   } catch (error) {
     console.error("Finance Anything sign-in failed.");
     console.error(error instanceof Error ? error.message : String(error));

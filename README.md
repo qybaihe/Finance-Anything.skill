@@ -58,7 +58,7 @@ ArkClaw 是云端 OpenClaw 形态，通常通过技能中心、Skill Hub 或 Cla
 - 从技能中心导入本 GitHub 仓库，或在 ArkClaw 终端把仓库克隆到实例的 skills 目录。
 - 确认运行环境有 Node.js 18 或更新版本，并允许访问 `https://finance.oir.me`。
 - 优先把 `FINANCE_ANYTHING_API_URL` 和 `FINANCE_ANYTHING_API_KEY` 放进 ArkClaw 的密钥/环境变量配置。
-- 如果没有 API Key，让 ArkClaw 触发 `--auth login`，由终端询问邮箱和密码；不要把密码写进任务正文。
+- 如果没有 API Key，让 ArkClaw 触发 `--auth login`，由终端询问用户名或邮箱和密码；不要把密码写进任务正文。Finance Anything 网页登录使用用户名，Skill 会按同一规则自动转换。
 
 ### 认证方式
 
@@ -76,7 +76,7 @@ export PAPERCLIP_API_URL="https://finance.oir.me"
 export PAPERCLIP_API_KEY="your_api_key"
 ```
 
-如果没有 API Key，可以让脚本进入交互式登录。它会询问 API URL、邮箱和密码，并只在本次请求中使用会话 Cookie，不会把密码写入仓库或配置文件：
+如果没有 API Key，可以让脚本进入交互式登录。它会询问 API URL、用户名或邮箱和密码，并只在本次请求中使用会话 Cookie，不会把密码写入仓库或配置文件：
 
 ```bash
 node scripts/start-decision.mjs --auth login --goal "我是否应该买这台二手 MacBook?"
@@ -86,11 +86,11 @@ node scripts/start-decision.mjs --auth login --goal "我是否应该买这台二
 
 ```bash
 export FINANCE_ANYTHING_API_URL="https://finance.oir.me"
-export FINANCE_ANYTHING_EMAIL="you@example.com"
+export FINANCE_ANYTHING_USERNAME="你的用户名或邮箱"
 export FINANCE_ANYTHING_PASSWORD="your_password"
 ```
 
-安全提醒：不要把 API Key、邮箱密码或用户隐私写入 README、issue 标题、上下文正文、日志或提交记录。交互式输入优先于命令行明文参数。
+安全提醒：不要把 API Key、账号密码或用户隐私写入 README、issue 标题、上下文正文、日志或提交记录。交互式输入优先于命令行明文参数。
 
 ### 使用方式
 
@@ -127,7 +127,7 @@ node scripts/start-decision.mjs --help
 ```text
 使用 Finance Anything Decision Skill 创建决策议题。
 如果环境里没有 FINANCE_ANYTHING_API_KEY 或 PAPERCLIP_API_KEY，先询问用户 Finance Anything API URL 和 API Key。
-如果用户没有 API Key，但有账号登录权限，则运行 --auth login，并在终端中询问邮箱和密码。
+如果用户没有 API Key，但有账号登录权限，则运行 --auth login，并在终端中询问用户名或邮箱和密码。
 不要自行生成最终购买或投资结论；最终结论由 Finance Anything 报告 Agent 输出。
 创建成功后，把 issuePath 返回给用户。
 ```
@@ -228,7 +228,7 @@ Recommended ArkClaw setup:
 - Import this GitHub repository from the skill center, or clone it into the ArkClaw instance's skills directory when terminal access is available.
 - Make sure the runtime has Node.js 18 or newer and network access to `https://finance.oir.me`.
 - Prefer configuring `FINANCE_ANYTHING_API_URL` and `FINANCE_ANYTHING_API_KEY` through ArkClaw secrets or environment variables.
-- If no API key is available, let ArkClaw run `--auth login` and ask for email/password in the terminal. Do not put passwords into task text.
+- If no API key is available, let ArkClaw run `--auth login` and ask for username or email plus password in the terminal. Do not put passwords into task text. Finance Anything's browser sign-in accepts usernames; the Skill mirrors that conversion.
 
 ### Authentication
 
@@ -246,7 +246,7 @@ export PAPERCLIP_API_URL="https://finance.oir.me"
 export PAPERCLIP_API_KEY="your_api_key"
 ```
 
-If the user does not have an API key, the script can use an interactive email/password login. It asks for the API URL, email, and password, uses the returned session cookie for this request, and does not persist the password:
+If the user does not have an API key, the script can use an interactive username/password login. It asks for the API URL, username or email, and password, uses the returned session cookie for this request, and does not persist the password:
 
 ```bash
 node scripts/start-decision.mjs --auth login --goal "Should I buy this second-hand MacBook?"
@@ -256,7 +256,7 @@ Trusted automation can also provide login credentials through environment variab
 
 ```bash
 export FINANCE_ANYTHING_API_URL="https://finance.oir.me"
-export FINANCE_ANYTHING_EMAIL="you@example.com"
+export FINANCE_ANYTHING_USERNAME="your_username_or_email"
 export FINANCE_ANYTHING_PASSWORD="your_password"
 ```
 
@@ -297,7 +297,7 @@ Use this operating instruction when another Agent invokes the Skill:
 ```text
 Use the Finance Anything Decision Skill to create a decision issue.
 If FINANCE_ANYTHING_API_KEY or PAPERCLIP_API_KEY is not available, ask the user for the Finance Anything API URL and API key.
-If the user has no API key but can sign in, run --auth login and ask for email/password in the terminal.
+If the user has no API key but can sign in, run --auth login and ask for username or email plus password in the terminal.
 Do not generate the final purchase or investment conclusion yourself; Finance Anything's report agent owns the final answer.
 After creation succeeds, return issuePath to the user.
 ```
